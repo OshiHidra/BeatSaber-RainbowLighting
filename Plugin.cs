@@ -2,6 +2,9 @@
 using IllusionPlugin;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using IllusionInjector;
+using System.Linq;
+using CustomUI.GameplaySettings;
 
 namespace RainbowLighting
 {
@@ -11,27 +14,57 @@ namespace RainbowLighting
 
         public string Version => "1.0.2";
 
-        private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
+        public static bool enabled = true;
+        public static LightSwitchEventEffect[] lightArray;
+        private void OnSceneLoaded(Scene scene, LoadSceneMode arg1)
         {
-            LightSwitchEventEffect[] array = Resources.FindObjectsOfTypeAll<LightSwitchEventEffect>();
-            
-            foreach (LightSwitchEventEffect obj in array)
-			{
-				Plugin.SetPrivateField(obj, "_lightColor0", this.randomColor);
-				Plugin.SetPrivateField(obj, "_lightColor1", this.randomColor);
-				Plugin.SetPrivateField(obj, "_highlightColor0", this.randomColor);
-				Plugin.SetPrivateField(obj, "_highlightColor1", this.randomColor);
-			}
+            if (scene.name == "Menu")
+            {
+                var disableOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Rainbow Lighting", "MainMenu", "Enable Rainbow Lighting");
+                disableOption.GetValue = ModPrefs.GetBool("RainbowLighting", "Enabled", true, true);
+                disableOption.OnToggle += (value) => { enabled = value; ModPrefs.SetBool("RainbowLighting", "Enabled", value); };
+            }
+
 		}
 
         public void OnApplicationStart()
 		{
-			this.randomColor = ScriptableObject.CreateInstance<ColorRandom>();
+
+            randomColor = ScriptableObject.CreateInstance<ColorRandom>();
             SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
         }
 
+        private void SceneManager_activeSceneChanged(Scene arg0, Scene scene)
+        {
+           if(scene.name == "GameCore")
+            {
+                Log("Starting Scene Loading Operations" + " Enabled: " + enabled.ToString());
+                if(lightArray == null)
+                lightArray = Resources.FindObjectsOfTypeAll<LightSwitchEventEffect>();
+                if (lightArray != null)
+                    foreach (LightSwitchEventEffect obj in lightArray)
+                    {
+                        if (enabled)
+                        {
+                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_lightColor0").color.ToString());
+                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_lightColor1").color.ToString());
+                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_highlightColor0").color.ToString());
+                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_highlightColor1").color.ToString());
+                            ReflectionUtil.SetPrivateField(obj, "_lightColor0", randomColor);
+                            ReflectionUtil.SetPrivateField(obj, "_lightColor1", randomColor);
+                            ReflectionUtil.SetPrivateField(obj, "_highlightColor0", randomColor);
+                            ReflectionUtil.SetPrivateField(obj, "_highlightColor1", randomColor);
+                        }
 
-		public void OnApplicationQuit()
+
+                    }
+                else
+                    Log("Null Light Array");
+            }
+        }
+
+        public void OnApplicationQuit()
 		{
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
@@ -52,12 +85,12 @@ namespace RainbowLighting
 		{
 		}
 
-		public static void SetPrivateField(object obj, string fieldName, object value)
-		{
-			FieldInfo field = obj.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-			field.SetValue(obj, value);
-		}
 
-		private ColorRandom randomColor;
+
+        public static void Log(string message)
+        {
+            System.Console.WriteLine("[RainbowLighting] " +  message);
+        }
+        private ColorRandom randomColor;
 	}
 }
