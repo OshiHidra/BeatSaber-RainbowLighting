@@ -29,7 +29,6 @@ namespace RainbowLighting
 
         public void OnApplicationStart()
 		{
-
             randomColor = ScriptableObject.CreateInstance<ColorRandom>();
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
@@ -37,20 +36,16 @@ namespace RainbowLighting
 
         private void SceneManager_activeSceneChanged(Scene arg0, Scene scene)
         {
-           if(scene.name == "GameCore")
-            {
+
                 Log("Starting Scene Loading Operations" + " Enabled: " + enabled.ToString());
-                if(lightArray == null)
                 lightArray = Resources.FindObjectsOfTypeAll<LightSwitchEventEffect>();
+
+
                 if (lightArray != null)
                     foreach (LightSwitchEventEffect obj in lightArray)
                     {
                         if (enabled)
                         {
-                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_lightColor0").color.ToString());
-                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_lightColor1").color.ToString());
-                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_highlightColor0").color.ToString());
-                            Log(ReflectionUtil.GetPrivateField<ColorSO>(obj, "_highlightColor1").color.ToString());
                             ReflectionUtil.SetPrivateField(obj, "_lightColor0", randomColor);
                             ReflectionUtil.SetPrivateField(obj, "_lightColor1", randomColor);
                             ReflectionUtil.SetPrivateField(obj, "_highlightColor0", randomColor);
@@ -61,7 +56,7 @@ namespace RainbowLighting
                     }
                 else
                     Log("Null Light Array");
-            }
+            
         }
 
         public void OnApplicationQuit()
