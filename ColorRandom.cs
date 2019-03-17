@@ -17,7 +17,8 @@ namespace RainbowLighting
 		{
 			get
 			{
-				return new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+				return new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), Random.Range(.65f, .82f));
+                //Added Alpha randomization because the lights are BIG BRIGHT in the new update
 			}
 		}
 	}
